@@ -5,8 +5,8 @@ const transporter = createTransport({
   port: 587,
   secure: false, // true for 465, false for other ports
   auth: {
-    user: "kamaleshsuresh426@gmail.com",
-    pass: "dsbkobpbfnrctbkc",
+    user: process.env.SMTP_MAIL,
+    pass: process.env.SMTP_MAIL_PASS!,
   },
 });
 
