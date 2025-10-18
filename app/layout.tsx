@@ -1,7 +1,17 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import NavBar from "./NavBar";
 import "./globals.css";
+// import { useRouter } from "next/navigation";
+// import { config } from '@fortawesome/fontawesome-svg-core'
+// import '@fortawesome/fontawesome-svg-core/styles.css'
+// config.autoAddCss = false
 
+// import '../lib/fontawesome'
+import Link from "next/link";
+// import {Provider} from 'react-redux';
+// import { store } from "./redux/store";
+import { ReduxProvider } from "./redux/Provider";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -23,12 +33,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    
+        <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <ReduxProvider>{children}</ReduxProvider>
+
       </body>
     </html>
+    
   );
 }

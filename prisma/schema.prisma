@@ -1,0 +1,145 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model blogs {
+  BLOG_Id             BigInt        @id @default(autoincrement())
+  USER_Id             BigInt?
+  BLOG_Title          String        @db.VarChar(255)
+  BLOG_Content        String        @db.MediumText
+  BLOG_Tags           String?       @db.VarChar(100)
+  BLOG_Image          String        @db.VarChar(500)
+  BLOG_Category       String        @db.VarChar(20)
+  BLOG_Created_Date   DateTime?     @db.DateTime(0)
+  BLOG_Updated_Date   DateTime?     @db.DateTime(0)
+  BLOG_likes_count    Int?
+  BLOG_comments_count Int?
+  credentials         users_master? @relation(fields: [USER_Id], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "BLOGS_SER_Id_FK")
+
+  @@index([USER_Id], map: "fk_User_ID")
+}
+
+model credentials {
+  User_Id       BigInt         @id @default(autoincrement())
+  User_Email    String         @unique(map: "User_Email") @db.VarChar(40)
+  User_Password String         @db.VarChar(100)
+  users_master  users_master[]
+}
+
+model otp {
+  OTP_Email  String    @id @db.VarChar(40)
+  OTP_Number Int?
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model users_master {
+  Id                                                               BigInt                      @id @default(autoincrement())
+  USER_Id                                                          BigInt                      @unique
+  USER_FirstName                                                   String                      @db.VarChar(25)
+  USER_LastName                                                    String?                     @db.VarChar(15)
+  USER_Gender                                                      users_master_USER_Gender?
+  USER_Country                                                     String                      @db.VarChar(20)
+  USER_Language                                                    String                      @db.VarChar(20)
+  USER_Profile                                                     String?                     @db.VarChar(500)
+  total_blogs_count                                                BigInt?
+  Username                                                         String?                     @unique(map: "Username") @db.VarChar(100)
+  followers_count                                                  Int?                        @default(0)
+  blogs                                                            blogs[]
+  blogs_master                                                     blogs_master[]
+  followers_master                                                 followers_master[]
+  user_comments_like_master                                        user_comments_like_master[]
+  user_comments_master_user_comments_master_USERS_IdTousers_master user_comments_master[]      @relation("user_comments_master_USERS_IdTousers_master")
+  user_comments_master_user_comments_master_UsernameTousers_master user_comments_master[]      @relation("user_comments_master_UsernameTousers_master")
+  user_likes_master_user_likes_master_USERS_IdTousers_master       user_likes_master[]         @relation("user_likes_master_USERS_IdTousers_master")
+  user_likes_master_user_likes_master_UsernameTousers_master       user_likes_master[]         @relation("user_likes_master_UsernameTousers_master")
+  credentials                                                      credentials                 @relation(fields: [USER_Id], references: [User_Id], onDelete: NoAction, onUpdate: NoAction, map: "USER_Id_FK")
+
+  @@index([USER_Id], map: "USER_Id_FK")
+}
+
+model followers_master {
+  id                Int           @id @default(autoincrement())
+  follower_id       Int?
+  follower_username String?       @db.VarChar(100)
+  user_id           BigInt?
+  users_master      users_master? @relation(fields: [user_id], references: [USER_Id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user")
+
+  @@index([user_id], map: "fk_user")
+}
+
+model user_comments_master {
+  COMMENT_Id                                               BigInt                      @id @default(autoincrement())
+  USERS_Id                                                 BigInt?
+  Username                                                 String?                     @db.VarChar(100)
+  USER_Comments                                            String?                     @db.Text
+  BLOG_Id                                                  BigInt?
+  comment_like_count                                       Int?                        @default(0)
+  user_comments_like_master                                user_comments_like_master[]
+  blogs                                                    blogs_master?               @relation(fields: [BLOG_Id], references: [BLOG_Id], onDelete: NoAction, onUpdate: NoAction, map: "fk_comment_blogid")
+  users_master_user_comments_master_USERS_IdTousers_master users_master?               @relation("user_comments_master_USERS_IdTousers_master", fields: [USERS_Id], references: [USER_Id], onDelete: NoAction, onUpdate: NoAction, map: "fk_comment_userid")
+  users_master_user_comments_master_UsernameTousers_master users_master?               @relation("user_comments_master_UsernameTousers_master", fields: [Username], references: [Username], onDelete: NoAction, onUpdate: NoAction, map: "fk_comment_username")
+
+  @@index([USERS_Id], map: "fk_comment_userid")
+  @@index([Username], map: "fk_comment_username")
+  @@index([BLOG_Id], map: "BLOGS_MASTER_ID_FK")
+}
+
+model user_likes_master {
+  LIKE_Id                                               BigInt        @id @default(autoincrement())
+  USERS_Id                                              BigInt?
+  Username                                              String?       @db.VarChar(100)
+  BLOG_Id                                               BigInt?
+  blogs                                                 blogs_master? @relation(fields: [BLOG_Id], references: [BLOG_Id], onDelete: NoAction, onUpdate: NoAction, map: "fk_blogid")
+  users_master_user_likes_master_USERS_IdTousers_master users_master? @relation("user_likes_master_USERS_IdTousers_master", fields: [USERS_Id], references: [USER_Id], onDelete: NoAction, onUpdate: NoAction, map: "fk_userid")
+  users_master_user_likes_master_UsernameTousers_master users_master? @relation("user_likes_master_UsernameTousers_master", fields: [Username], references: [Username], onDelete: NoAction, onUpdate: NoAction, map: "fk_username")
+
+  @@index([USERS_Id], map: "fk_userid")
+  @@index([Username], map: "fk_username")
+  @@index([BLOG_Id], map: "Blog_id_user_likes_master")
+}
+
+model blogs_master {
+  BLOG_Id                   BigInt                      @id @default(autoincrement())
+  USER_Id                   BigInt
+  BLOG_Title                String                      @db.VarChar(255)
+  BLOG_Content              String                      @db.MediumText
+  BLOG_Tags                 String?                     @db.VarChar(100)
+  BLOG_Image                String                      @db.VarChar(500)
+  BLOG_Category             String                      @db.VarChar(20)
+  BLOG_Created_Date         DateTime?                   @db.DateTime(0)
+  BLOG_Updated_Date         DateTime?                   @db.DateTime(0)
+  BLOG_likes_count          Int?
+  BLOG_comments_count       Int?
+  users_master              users_master                @relation(fields: [USER_Id], references: [USER_Id], onDelete: NoAction, onUpdate: NoAction, map: "BLOGS_USER_Id_FK")
+  user_comments_like_master user_comments_like_master[]
+  user_comments_master      user_comments_master[]
+  user_likes_master         user_likes_master[]
+
+  @@index([USER_Id], map: "BLOGS_USER_Id_FK")
+}
+
+model user_comments_like_master {
+  COMMENT_LIKE_Id      BigInt               @id @default(autoincrement())
+  COMMENT_Id           BigInt
+  USER_Id              BigInt
+  BLOG_Id              BigInt
+  Username             String?              @db.VarChar(100)
+  CREATED_At           DateTime?            @default(now()) @db.Timestamp(0)
+  user_comments_master user_comments_master @relation(fields: [COMMENT_Id], references: [COMMENT_Id], onDelete: NoAction, onUpdate: NoAction, map: "user_comments_like_master_ibfk_1")
+  users_master         users_master         @relation(fields: [USER_Id], references: [USER_Id], onDelete: NoAction, onUpdate: NoAction, map: "user_comments_like_master_ibfk_2")
+  blogs_master         blogs_master         @relation(fields: [BLOG_Id], references: [BLOG_Id], onDelete: NoAction, onUpdate: NoAction, map: "user_comments_like_master_ibfk_3")
+
+  @@index([BLOG_Id], map: "BLOG_Id")
+  @@index([COMMENT_Id], map: "COMMENT_Id")
+  @@index([USER_Id], map: "USER_Id")
+}
+
+enum users_master_USER_Gender {
+  MALE
+  FEMALE
+}
